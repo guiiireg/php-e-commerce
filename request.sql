@@ -15,5 +15,5 @@ FROM cart JOIN article ON cart.article_id = article.id;
 SELECT 
     SUM(article.prix * cart.quantite) AS total_global
 FROM cart
-JOIN article 
+JOIN article
     ON cart.article_id = article.id;
