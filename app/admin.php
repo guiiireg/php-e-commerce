@@ -1,6 +1,6 @@
 <?php
 
-require_once 'config.php';
+require_once __DIR__ . "/config/config.php";
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php');
@@ -25,39 +25,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Modération</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .btn {
-            padding: 5px 10px;
-            text-decoration: none;
-            color: white;
-            border-radius: 4px;
-        }
-
-        .btn-edit {
-            background-color: #4CAF50;
-        }
-
-        .btn-delete {
-            background-color: #f44336;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 
 <body>
