@@ -33,4 +33,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-require_once __DIR__ . '/../../frontend/pages/auth/register.php';http://localhost:8080/backend/admin.php
+require_once __DIR__ . '/../../frontend/pages/auth/register.php';
