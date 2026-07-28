@@ -1,40 +1,54 @@
 <?php
+/**
+ * CONTRÔLEUR PAGE D'ACCUEIL / CATALOGUE PRODUITS
+ * - Récupère la liste des articles en base de données.
+ * - Permet le filtrage par mot-clé (recherche sur le nom ou la description).
+ * - Gère le tri par prix croissant, décroissant ou date de publication.
+ * - Joint la table `stock` pour afficher la quantité disponible de chaque article.
+ */
 
 require_once __DIR__ . '/config/config.php';
 
-// Get search and sort parameters from the query string
-$search = $_GET['search'] ?? '';
-$sort = $_GET['sort'] ?? '';
-// Trim the search term to remove extra whitespace
-$search = trim($search);
+// Récupération et nettoyage des paramètres de recherche et tri
+$search = trim($_GET['search'] ?? '');
+$sort = trim($_GET['sort'] ?? '');
 
-// Build the SQL query with optional search and sorting
-$sql = "SELECT * FROM Article";
+// Construction dynamique de la requête SQL avec jointure sur les stocks
+$sql = "SELECT article.*, users.username AS auteur_name, COALESCE(stock.nombre, 0) AS stock_qty
+        FROM article
+        LEFT JOIN users ON article.auteur_id = users.id
+        LEFT JOIN stock ON stock.article_id = article.id";
+
 $params = [];
 
-// Add a WHERE clause if a search term is provided
+// Filtre de recherche par mot-clé
 if (!empty($search)) {
-    $sql .= " WHERE nom LIKE :search";
+    $sql .= " WHERE article.nom LIKE :search OR article.description LIKE :search";
     $params[':search'] = '%' . $search . '%';
 }
 
-// Determine the ORDER BY clause based on the sort parameter
+// Application du tri selon la sélection de l'utilisateur
 switch ($sort) {
     case 'prix_asc':
-        $orderBy = "prix ASC";
+        $orderBy = "article.prix ASC";
         break;
     case 'prix_desc':
-        $orderBy = "prix DESC";
+        $orderBy = "article.prix DESC";
         break;
     default:
-        $orderBy = "date_publication DESC";
+        $orderBy = "article.date_publication DESC";
         break;
 }
-// Append the ORDER BY clause to the SQL query
+
 $sql .= " ORDER BY " . $orderBy;
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Erreur lors de la récupération des articles : " . htmlspecialchars($e->getMessage()));
+}
 
+// Inclusions de la vue HTML d'accueil
 require_once __DIR__ . '/../frontend/pages/home.php';

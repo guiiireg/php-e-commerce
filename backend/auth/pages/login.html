@@ -1,10 +1,18 @@
+<!-- 
+  TEMPLATE HTML SECONDAIRE DE CONNEXION 
+  Note : Les vues principales utilisées se trouvent dans /frontend/pages/auth/login.php.
+  Ce fichier sert d'alternative ou de fragment de formulaire basique.
+-->
 <h2>Connexion</h2>
 
-<form method="POST">
+<form method="POST" action="/backend/auth/login.php">
     <input type="email" name="email" placeholder="Email" required>
     <input type="password" name="password" placeholder="Mot de passe" required>
     <button type="submit">Se connecter</button>
 </form>
 
-<p style="color:red"><?php echo $error; ?></p>
-<a href="../register.php">Créer un compte</a>
+<?php if (isset($error)): ?>
+    <p style="color:red; margin-top:10px;"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
+
+<a href="/backend/auth/register.php">Créer un compte</a>

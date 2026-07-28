@@ -1,216 +1,237 @@
-# PHP E-Commerce
+# 🛍️ PHP E-Commerce — Application E-Commerce Native PHP & MySQL
 
-Application e-commerce développée en **PHP natif**, structurée en deux couches distinctes : un **backend** (logique métier, authentification, administration) et un **frontend** (interface utilisateur, assets).
-
----
-
-## Table des matières
-
-- [PHP E-Commerce](#php-e-commerce)
-  - [Table des matières](#table-des-matières)
-  - [Architecture du projet](#architecture-du-projet)
-    - [Principes d'architecture](#principes-darchitecture)
-  - [Prérequis](#prérequis)
-  - [Installation \& Déploiement](#installation--déploiement)
-    - [1. Cloner le dépôt](#1-cloner-le-dépôt)
-    - [2. Importer la base de données](#2-importer-la-base-de-données)
-    - [3. Configurer la connexion à la base de données](#3-configurer-la-connexion-à-la-base-de-données)
-    - [4. Lancer le serveur de développement](#4-lancer-le-serveur-de-développement)
-  - [Base de données](#base-de-données)
-    - [Schéma relationnel](#schéma-relationnel)
-  - [Routes principales](#routes-principales)
-  - [Comptes \& Rôles](#comptes--rôles)
-    - [Créer un compte admin (développement)](#créer-un-compte-admin-développement)
-    - [Règles d'inscription](#règles-dinscription)
+Bienvenue sur le projet **PHP E-Commerce**. Il s'agit d'une application e-commerce complète, développée en **PHP natif** (sans framework) et **MySQL/PDO**, respectant une architecture propre et modulable avec une séparation claire entre la logique métier (**backend**) et l'interface utilisateur (**frontend**).
 
 ---
 
-## Architecture du projet
+## 📋 Sommaire
+
+- [Présentation du projet](#-présentation-du-projet)
+- [Fonctionnalités principales](#-fonctionnalités-principales)
+- [Architecture & Structure du projet](#-architecture--structure-du-projet)
+- [Prérequis système](#-prérequis-système)
+- [Installation & Configuration](#-installation--configuration)
+  - [1. Obtenir les sources](#1-obtenir-les-sources)
+  - [2. Importer la base de données](#2-importer-la-base-de-données)
+  - [3. Configurer les identifiants PDO](#3-configurer-les-identifiants-pdo)
+  - [4. Lancer le serveur local](#4-lancer-le-serveur-local)
+- [Schéma de la base de données](#-schéma-de-la-base-de-données)
+- [Cartographie des Routes & Fichiers](#-cartographie-des-routes--fichiers)
+- [Comptes de test & Rôles](#-comptes-de-test--rôles)
+- [Documentation & Zones de Commentaires](#-documentation--zones-de-commentaires)
+
+---
+
+## 🌟 Présentation du projet
+
+Ce projet constitue une plateforme e-commerce clé en main incluant :
+- Un catalogue de produits avec recherche dynamique par mot-clé et système de tri.
+- Un système complet d'authentification utilisateur avec chiffrement sécurisé des mots de passe.
+- Un panier d'achat persistant par utilisateur avec ajustement des quantités et calcul du sous-total/total.
+- Un mécanisme de commande gérant le solde bancaire virtuel de l'utilisateur, la décrémentation des stocks en temps réel et la génération de factures.
+- Un tableau de bord d'administration sécurisé permettant la modération des membres, la création et l'édition d'articles, la mise à jour des stocks et la consultation de l'historique des factures.
+
+---
+
+## 🔥 Fonctionnalités principales
+
+### 🛒 Côté Client / Utilisateur
+1. **Navigation & Catalogue** :
+   - Affichage des articles sous forme de cartes modernes.
+   - Badge de disponibilité du stock en temps réel (*En stock* avec quantité restante / *Rupture de stock*).
+   - Barre de recherche par mot-clé (nom ou description).
+   - Tri dynamique : plus récents, prix croissant, prix décroissant.
+2. **Page Fiche Produit (`detail.php`)** :
+   - Vue détaillée avec auteur du produit, date de mise en ligne, description complète et tarif.
+   - Sélecteur de quantité borné par la limite du stock disponible.
+   - Bouton d'ajout immédiat au panier.
+3. **Panier & Prise de Commande (`cart.php`)** :
+   - Affichage sous forme de tableau récapitulatif.
+   - Modification en direct des quantités et suppression d'articles.
+   - Vérification automatique de la solvabilité du client (solde utilisateur vs total de la commande).
+   - Saisie de l'adresse de facturation/livraison.
+   - Validation de la commande via transaction SQL sécurisée (`beginTransaction` / `commit` / `rollBack`) qui :
+     - Déduit le montant total du solde utilisateur.
+     - Décrémente le stock de chaque article.
+     - Génère une entrée de facture (`invoice`).
+     - Vide le panier de l'utilisateur.
+4. **Authentification (`auth/`)** :
+   - Inscription avec validation du format de l'email, mot de passe fort (12+ caractères) et solde de bienvenue initial crédité (100 €).
+   - Connexion via hash de mot de passe BCrypt (`password_verify`).
+   - Déconnexion sécurisée réinitialisant la session PHP et les cookies associés.
+
+### ⚙️ Côté Administrateur (`admin.php`)
+1. **Gestion des Utilisateurs** :
+   - Liste de tous les comptes enregistrés.
+   - Édition des informations membres : nom d'utilisateur, email, attribution du rôle (`user` ou `admin`), rechargement du solde du compte (`edit_user.php`).
+   - Suppression sécurisée de comptes (avec protection contre l'auto-suppression de l'admin connecté).
+2. **Gestion des Articles & Stocks** :
+   - Création de nouveaux produits avec attribution du stock initial (`add_article.php`).
+   - Édition complète des fiches produits : nom, description, prix, image et niveau du stock (`edit_article.php`).
+   - Suppression définitive d'articles (`admin_delete.php`).
+3. **Historique des Ventes** :
+   - Tableau de bord des factures enregistrées avec nom du client, date de la transaction, montant et adresse de facturation.
+
+---
+
+## 📐 Architecture & Structure du projet
 
 ```
 php-e-commerce/
-├── backend/                    # Logique serveur
-│   ├── admin.php               # Tableau de bord admin (users + articles)
-│   ├── admin_delete.php        # Suppression d'utilisateurs / articles (admin)
-│   ├── home.php                # Récupération des articles (recherche, tri)
-│   ├── init_admin.php          # Script utilitaire pour forcer une session admin
+├── index.php                       # Point d'entrée racine (redirection vers backend/home.php)
+├── CODEOWNERS                      # Fichier de propriétaires de code
+├── README.md                       # Documentation principale du projet
+├── backend/                        # LOGIQUE SVEUR & CONTRÔLEURS
+│   ├── home.php                    # Contrôleur d'accueil (catalogue, recherche & tri)
+│   ├── detail.php                  # Contrôleur de fiche produit & ajout panier
+│   ├── cart.php                    # Contrôleur du panier et paiement de commande
+│   ├── admin.php                   # Contrôleur du tableau de bord administrateur
+│   ├── admin_delete.php            # Traitement de suppression (membres / articles)
+│   ├── add_article.php             # Contrôleur de création d'article
+│   ├── edit_article.php            # Contrôleur d'édition d'article & stock
+│   ├── edit_user.php               # Contrôleur d'édition d'utilisateur & solde
+│   ├── init_admin.php              # Script utilitaire de dev (activation session admin)
 │   ├── auth/
-│   │   ├── index.php           # Guard d'authentification (redirection si non connecté)
-│   │   ├── login.php           # Traitement du formulaire de connexion
-│   │   ├── register.php        # Traitement du formulaire d'inscription
-│   │   └── pages/
-│   │       ├── login.html      # Template HTML de connexion
-│   │       └── register.html   # Template HTML d'inscription
+│   │   ├── index.php               # Guard d'authentification
+│   │   ├── login.php               # Traitement du formulaire de connexion
+│   │   ├── register.php            # Traitement du formulaire d'inscription
+│   │   ├── logout.php              # Traitement de la déconnexion
+│   │   └── pages/                  # Templates HTML de secours (login / register)
 │   └── config/
-│       └── config.php          # Connexion PDO à MySQL + démarrage de session
-├── frontend/                   # Interface utilisateur
-│   ├── index.php               # Point d'entrée frontend
+│       └── config.php              # Connexion PDO MySQL & initialisation des sessions
+├── frontend/                       # VUES & INTERFACE UTILISATEUR
+│   ├── index.php                   # Redirection frontend vers backend/home.php
 │   ├── assets/
 │   │   ├── css/
-│   │   │   ├── home.css        # Styles de la page d'accueil
-│   │   │   └── style.css       # Styles globaux
-│   │   └── img/                # Images statiques
+│   │   │   ├── style.css           # Feuille de style globale (thème, boutons, tables)
+│   │   │   └── home.css            # Feuille de style spécifique (grilles, cartes, panier)
+│   │   └── img/
+│   │       └── default.jpg         # Image par défaut des articles
 │   └── pages/
-│       ├── admin.php           # Vue admin (rendu HTML)
-│       ├── home.php            # Vue accueil / catalogue articles
+│       ├── home.php                # Vue de la page d'accueil
+│       ├── detail.php              # Vue de la fiche produit
+│       ├── cart.php                # Vue du panier d'achat
+│       ├── admin.php               # Vue du tableau de bord administrateur
+│       ├── add_article.php         # Vue de création d'un article
+│       ├── edit_article.php        # Vue d'édition d'un article
+│       ├── edit_user.php           # Vue d'édition d'un utilisateur
+│       ├── partials/
+│       │   ├── header.php          # Barre de navigation partagée avec solde & panier
+│       │   └── footer.php          # Pied de page partagé
 │       └── auth/
-│           ├── login.php       # Vue formulaire de connexion
-│           └── register.php    # Vue formulaire d'inscription
-├── sql/
-│   ├── database.sql            # Script de création de la BDD et des tables
-│   └── request.sql             # Requêtes SQL utilitaires (panier, totaux)
-├── CODEOWNERS
-└── README.md
-```
-
-### Principes d'architecture
-
-- **Séparation backend / frontend** : la logique métier (requêtes SQL, contrôle d'accès, traitement des formulaires) est dans `backend/`. Les vues HTML/PHP sont dans `frontend/pages/`.
-- **Routage par fichier** : chaque URL correspond directement à un fichier PHP (pas de framework, pas de routeur).
-- **Authentification par session** : les sessions PHP (`$_SESSION`) gèrent l'état de connexion et le rôle de l'utilisateur.
-- **Base de données MySQL** : accès via PDO avec requêtes préparées.
-
----
-
-## Prérequis
-
-| Outil | Version minimale |
-|-------|-----------------|
-| **PHP** | 8.0+ |
-| **MySQL** | 5.7+ / MariaDB 10.3+ |
-| **Git** | 2.x |
-
-> **Note** : Aucun gestionnaire de dépendances (Composer) n'est requis. Le projet fonctionne en PHP natif.
-
-Vérifiez vos versions installées :
-
-```bash
-php -v
-mysql --version
+│           ├── login.php           # Vue du formulaire de connexion
+│           └── register.php        # Vue du formulaire d'inscription
+└── sql/
+    ├── database.sql                # Script d'initialisation de la BDD et tables
+    └── request.sql                 # Requêtes SQL de démonstration et utilitaires
 ```
 
 ---
 
-## Installation & Déploiement
+## 🛠️ Prérequis système
 
-### 1. Cloner le dépôt
+- **PHP** : version 8.0 ou supérieure (avec extensions `pdo_mysql` et `mbstring`).
+- **MySQL / MariaDB** : version 5.7+ ou MariaDB 10.3+.
+- **Navigateur Web** : n'importe quel navigateur moderne (Chrome, Firefox, Edge, Safari).
 
+---
+
+## 🚀 Installation & Configuration
+
+### 1. Obtenir les sources
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/guiiireg/php-e-commerce.git
 cd php-e-commerce
 ```
 
 ### 2. Importer la base de données
-
-Connectez-vous à votre serveur MySQL et exécutez le script de création :
+Exécutez le script SQL pour créer la base `php_exam`, la structure des tables et charger les données de démonstration :
 
 ```bash
 mysql -u root -p < sql/database.sql
 ```
 
-Ce script effectue les opérations suivantes :
+Si vous préférez créer l'utilisateur MySQL dédié avec les droits appropriés :
+```sql
+CREATE USER IF NOT EXISTS 'php_user'@'localhost' IDENTIFIED BY 'root123';
+GRANT ALL PRIVILEGES ON php_exam.* TO 'php_user'@'localhost';
+FLUSH PRIVILEGES;
+```
 
-- Création de la base de données `php_exam`
-- Création des tables :
-  - **users** — Utilisateurs (username, email, password hashé, solde, photo, rôle)
-  - **Article** — Articles en vente (nom, description, prix, image, auteur)
-  - **Stock** — Gestion du stock par article
-  - **Cart** — Panier d'achat par utilisateur
-  - **Invoice** — Factures générées après achat
-
-### 3. Configurer la connexion à la base de données
-
-Ouvrez le fichier `backend/config/config.php` et adaptez les identifiants de connexion à votre environnement local :
-
+### 3. Configurer les identifiants PDO
+Le fichier `backend/config/config.php` contient les identifiants de connexion. Modifiez-les si nécessaire :
 ```php
 $host = 'localhost';
 $dbname = 'php_exam';
-$username = 'php_user';    // ← Remplacez par votre utilisateur MySQL
-$password = 'root123';     // ← Remplacez par votre mot de passe MySQL
+$username = 'php_user'; // Votre identifiant MySQL
+$password = 'root123';  // Votre mot de passe MySQL
 ```
 
-> **Important** : Assurez-vous que l'utilisateur MySQL configuré a les droits sur la base `php_exam`. Si besoin, créez l'utilisateur :
->
-> ```sql
-> CREATE USER 'php_user'@'localhost' IDENTIFIED BY 'root123';
-> GRANT ALL PRIVILEGES ON php_exam.* TO 'php_user'@'localhost';
-> FLUSH PRIVILEGES;
-> ```
-
-### 4. Lancer le serveur de développement
-
-Depuis la **racine du projet**, démarrez le serveur intégré de PHP :
-
+### 4. Lancer le serveur local
+Exécutez la commande suivante depuis la racine du projet :
 ```bash
 php -S localhost:8080
 ```
-
-L'application est maintenant accessible à l'adresse :
-
-**[http://localhost:8080](http://localhost:8080)**
+Accédez ensuite à l'application dans votre navigateur : **[http://localhost:8080](http://localhost:8080)**.
 
 ---
 
-## Base de données
-
-### Schéma relationnel
+## 🗄️ Schéma de la base de données
 
 ```
-users (id, username, password, email, solde, photo, role)
-  │
-  ├──< Article (id, nom, description, prix, date_publication, auteur_id, image)
-  │       │
-  │       ├──< Stock (id, article_id, nombre)
-  │       │
-  │       └──< Cart (id, user_id, article_id, quantite)
-  │
-  └──< Invoice (id, user_id, date, montant, adresse_facturation, ville, cp)
+  +-------------------------------------------------------------+
+  |                            users                            |
+  +-------------------------------------------------------------+
+  | id (PK), username, email, password, solde, photo, role      |
+  +-------------------------------------------------------------+
+         |                                           |
+         | (1:N)                                     | (1:N)
+         v                                           v
+  +-----------------------+                   +------------------+
+  |        article        |                   |     invoice      |
+  +-----------------------+                   +------------------+
+  | id (PK), nom, prix,   |                   | id (PK), user_id,|
+  | description, image,   |                   | date, montant,   |
+  | date_pub, auteur_id   |                   | adresse, ville,cp|
+  +-----------------------+                   +------------------+
+    |                 |
+    | (1:1)           | (1:N)
+    v                 v
+  +-----------+     +-------------------+
+  |   stock   |     |       cart        |
+  +-----------+     +-------------------+
+  | id (PK),  |     | id (PK), user_id, |
+  | article_id|     | article_id,       |
+  | nombre    |     | quantite          |
+  +-----------+     +-------------------+
 ```
 
-- Les clés étrangères utilisent `ON DELETE CASCADE` : la suppression d'un utilisateur ou d'un article supprime les données liées.
+- **`users`** : Comptes utilisateurs, hash de mot de passe, rôle (`user`/`admin`) et solde bancaire virtuel (`solde`).
+- **`article`** : Produits mis en vente (nom, description, prix, auteur, image).
+- **`stock`** : Quantité disponible en stock associée à chaque article.
+- **`cart`** : Articles et quantités enregistrés dans le panier d'un utilisateur.
+- **`invoice`** : Factures émises lors de la validation d'une commande.
 
 ---
 
-## Routes principales
+## 🔑 Comptes de test & Rôles
 
-| URL | Méthode | Description |
-|-----|---------|-------------|
-| `/backend/home.php` | GET | Page d'accueil — liste des articles (recherche & tri) |
-| `/backend/auth/login.php` | GET / POST | Connexion utilisateur |
-| `/backend/auth/register.php` | GET / POST | Inscription utilisateur |
-| `/backend/admin.php` | GET | Tableau de bord admin (liste users + articles) |
-| `/backend/admin_delete.php?type=user&id=X` | GET | Suppression d'un utilisateur (admin) |
-| `/backend/admin_delete.php?type=article&id=X` | GET | Suppression d'un article (admin) |
-| `/backend/init_admin.php` | GET | **Dev only** — Force une session admin pour les tests |
+Le fichier `sql/database.sql` pré-remplit la base de données avec des comptes de test :
 
----
+| Role | Identifiant / Email | Mot de passe | Solde par défaut |
+|------|--------------------|--------------|------------------|
+| **Admin** | `admin@example.com` | `Admin123456!` | 500.00 € |
+| **User** | `jean@example.com` | `Admin123456!` | 250.00 € |
 
-## Comptes & Rôles
-
-L'application gère deux rôles :
-
-- **`user`** (par défaut) — Accès au catalogue, panier et achat
-- **`admin`** — Accès au tableau de bord d'administration (gestion des utilisateurs et articles)
-
-### Créer un compte admin (développement)
-
-Option 1 — Via le script utilitaire :
-
-```
-http://localhost:8080/backend/init_admin.php
-```
-
-Option 2 — Directement en base de données :
-
-```sql
-UPDATE users SET role = 'admin' WHERE email = 'votre@email.com';
-```
-
-### Règles d'inscription
-
-- Nom d'utilisateur obligatoire
-- Email valide et unique
-- Mot de passe de **12 caractères minimum**
-- Confirmation du mot de passe obligatoire
+> 💡 **Mode Rapide Admin (Développement)** :  
+> Vous pouvez forcer une session administrateur sans saisir d'identifiant en visitant l'URL :  
+> `http://localhost:8080/backend/init_admin.php`
 
 ---
+
+## 📚 Documentation & Zones de Commentaires
+
+L'ensemble du code a été documenté avec des zones de commentaires claires et didactiques en français afin d'en faciliter la lecture et la compréhension par tout développeur :
+- **En-têtes de fichiers (Docblocks)** : Présentation du rôle du fichier et de son contexte d'exécution.
+- **Gestion des transactions SQL** : Explication du fonctionnement des requêtes préparées PDO, des jointures (`LEFT JOIN`) et du contrôle des transactions (`beginTransaction` / `commit` / `rollBack`).
+- **Sécurité** : Explications détaillées du chiffrement des mots de passe (`password_hash`, `password_verify`), de la prévention contre les failles XSS (`htmlspecialchars`) et des injections SQL.
