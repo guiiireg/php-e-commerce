@@ -1,5 +1,11 @@
 # 🛍️ PHP E-Commerce — Application E-Commerce Native PHP & MySQL
 
+[![Demo Live](https://img.shields.io/badge/Demo%20Live-guireg.alwaysdata.net-2563eb?style=for-the-badge&logo=google-chrome&logoColor=white)](https://guireg.alwaysdata.net)
+[![PHP](https://img.shields.io/badge/PHP-8.0+-777bb4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-MariaDB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
+
+> 🌐 **Démo en ligne disponible** : **[https://guireg.alwaysdata.net](https://guireg.alwaysdata.net)**
+
 Bienvenue sur le projet **PHP E-Commerce**. Il s'agit d'une application e-commerce complète, développée en **PHP natif** (sans framework) et **MySQL/PDO**, respectant une architecture propre et modulable avec une séparation claire entre la logique métier (**backend**) et l'interface utilisateur (**frontend**).
 
 ---
