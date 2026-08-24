@@ -1,10 +1,6 @@
 -- ==============================================================================
--- BASE DE DONNÉES : php_exam
--- Ce fichier contient les requêtes de création des tables et des données d'exemple.
+-- BASE DE DONNÉES : Schéma et données d'exemple
 -- ==============================================================================
-
-CREATE DATABASE IF NOT EXISTS php_exam CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE php_exam;
 
 -- ------------------------------------------------------------------------------
 -- 1. Table `users` (Gestion des comptes utilisateurs et rôles)
