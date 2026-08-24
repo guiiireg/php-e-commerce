@@ -3,7 +3,7 @@
  * Core Application & Security Configuration
  *
  * Centralizes session initialization, database connection management,
- * security headers, and CSRF protection utilities.
+ * environment loading (.env support), security headers, and CSRF protection utilities.
  */
 
 // Harden session cookie attributes to mitigate session hijacking and XSS exposure.
@@ -31,13 +31,47 @@ header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Read database credentials from environment variables to avoid committing production secrets.
-// Fallback defaults allow out-of-the-box local development.
-$host = getenv('DB_HOST') ?: 'localhost';
-$port = getenv('DB_PORT') ?: '3306';
-$dbname = getenv('DB_NAME') ?: 'php_exam';
-$username = getenv('DB_USER') ?: 'php_user';
-$password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : 'root123';
+// Automatically load .env file if present at the project root for environments where system env vars aren't injected into PHP-FPM
+$envFile = __DIR__ . '/../../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        if (str_contains($line, '=')) {
+            list($envKey, $envVal) = explode('=', $line, 2);
+            $envKey = trim($envKey);
+            $envVal = trim($envVal, " \t\n\r\0\x0B\"'");
+            putenv("$envKey=$envVal");
+            $_ENV[$envKey] = $envVal;
+            $_SERVER[$envKey] = $envVal;
+        }
+    }
+}
+
+// Helper to reliably read environment variables across CLI, Apache, and PHP-FPM / FastCGI
+function env(string $key, ?string $default = null): ?string {
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+        return $_ENV[$key];
+    }
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        return $_SERVER[$key];
+    }
+    $val = getenv($key);
+    if ($val !== false && $val !== '') {
+        return $val;
+    }
+    return $default;
+}
+
+// Read database credentials with fallback defaults for local development
+$host = env('DB_HOST', 'localhost');
+$port = env('DB_PORT', '3306');
+$dbname = env('DB_NAME', 'php_exam');
+$username = env('DB_USER', 'php_user');
+$password = env('DB_PASS', 'root123');
 
 try {
     // - ATTR_EMULATE_PREPARES=false forces native MySQL prepared statements (server-side parameters),
@@ -50,7 +84,7 @@ try {
     ]);
 } catch (PDOException $e) {
     // Log database connectivity failures internally to prevent leaking table structures or database credentials to end-users.
-    error_log("Database connection error: " . $e->getMessage());
+    error_log("Database connection error [$host:$port / $dbname / user: $username]: " . $e->getMessage());
     die("A database connection error occurred. Please try again later.");
 }
 
