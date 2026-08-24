@@ -27,7 +27,7 @@
 
         <div class="admin-form-container">
             <form method="POST" action="/backend/add_article.php" class="admin-form">
-                
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label for="nom">Nom de l'article :</label>
                     <input type="text" id="nom" name="nom" required value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">

@@ -40,6 +40,7 @@
             <?php endif; ?>
 
             <form action="/backend/auth/login.php" method="POST" class="auth-form">
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label for="email">Adresse Email :</label>
                     <input 

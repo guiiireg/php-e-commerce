@@ -1,16 +1,16 @@
 <?php
 /**
- * CONTRÔLEUR D'AJOUT D'UN NOUVEL ARTICLE (ADMIN)
- * - Accessible uniquement aux utilisateurs disposant du rôle 'admin'.
- * - Reçoit les données du nouveau produit (nom, description, prix, stock, nom d'image).
- * - Insère le produit dans `article` et son stock initial dans `stock`.
+ * Administrator Product Creation Controller
+ *
+ * Validates new article inputs, sanitizes asset references,
+ * and initializes inventory records atomically.
  */
 
 require_once __DIR__ . '/config/config.php';
 
-// Contrôle des droits d'administration
+// Role Guard: Restrict product creation privileges strictly to administrators
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    $_SESSION['flash_error'] = "Accès refusé.";
+    $_SESSION['flash_error'] = "Access denied.";
     header('Location: /backend/auth/login.php');
     exit();
 }
@@ -18,40 +18,54 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nom = trim($_POST['nom'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $prix = (float)($_POST['prix'] ?? 0);
-    $stock = (int)($_POST['stock'] ?? 0);
-    $image = trim($_POST['image'] ?? 'default.jpg');
-
-    if (empty($nom) || empty($description) || $prix <= 0) {
-        $error = "Veuillez saisir un nom, une description et un prix valide (> 0).";
+    if (!verify_csrf_token()) {
+        $error = "Form session expired. Please refresh the page and try again.";
     } else {
-        try {
-            $pdo->beginTransaction();
+        $nom = trim($_POST['nom'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $prix = (float)($_POST['prix'] ?? 0);
+        $stock = (int)($_POST['stock'] ?? 0);
+        $rawImage = trim($_POST['image'] ?? 'default.jpg');
 
-            // Insertion dans la table article
-            $stmtArt = $pdo->prepare("
-                INSERT INTO article (nom, description, prix, auteur_id, image) 
-                VALUES (?, ?, ?, ?, ?)
-            ");
-            $stmtArt->execute([$nom, $description, $prix, $_SESSION['user_id'], empty($image) ? 'default.jpg' : $image]);
-            $articleId = $pdo->lastInsertId();
+        // Path Traversal Mitigation: Strip relative directory segments (e.g., ../../) to ensure
+        // images resolve only within the intended /frontend/assets/img/ directory.
+        $image = basename($rawImage);
+        if (empty($image)) {
+            $image = 'default.jpg';
+        }
 
-            // Insertion dans la table stock
-            $stmtStock = $pdo->prepare("INSERT INTO stock (article_id, nombre) VALUES (?, ?)");
-            $stmtStock->execute([$articleId, max(0, $stock)]);
+        // Business rule: Enforce positive prices to prevent free or negative billing bugs
+        if (empty($nom) || empty($description) || $prix <= 0) {
+            $error = "Please provide a valid title, description, and a price greater than 0.";
+        } else {
+            try {
+                // Atomic transaction ensures an article record is never orphaned without its stock entry
+                $pdo->beginTransaction();
 
-            $pdo->commit();
+                // Persist article metadata linked to the creator's user_id
+                $stmtArt = $pdo->prepare("
+                    INSERT INTO article (nom, description, prix, auteur_id, image) 
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                $stmtArt->execute([$nom, $description, $prix, (int)$_SESSION['user_id'], $image]);
+                $articleId = $pdo->lastInsertId();
 
-            $_SESSION['success'] = "Article '" . htmlspecialchars($nom) . "' créé avec succès !";
-            header('Location: /backend/admin.php');
-            exit();
-        } catch (PDOException $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
+                // Initialize stock counter with zero-floor clamp
+                $stmtStock = $pdo->prepare("INSERT INTO stock (article_id, nombre) VALUES (?, ?)");
+                $stmtStock->execute([$articleId, max(0, $stock)]);
+
+                $pdo->commit();
+
+                $_SESSION['success'] = "Article '" . htmlspecialchars($nom) . "' created successfully!";
+                header('Location: /backend/admin.php');
+                exit();
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                error_log("Failed to create article: " . $e->getMessage());
+                $error = "An error occurred while creating the article.";
             }
-            $error = "Erreur lors de la création de l'article : " . htmlspecialchars($e->getMessage());
         }
     }
 }

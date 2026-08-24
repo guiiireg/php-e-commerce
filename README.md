@@ -90,7 +90,6 @@ php-e-commerce/
 │   ├── add_article.php             # Contrôleur de création d'article
 │   ├── edit_article.php            # Contrôleur d'édition d'article & stock
 │   ├── edit_user.php               # Contrôleur d'édition d'utilisateur & solde
-│   ├── init_admin.php              # Script utilitaire de dev (activation session admin)
 │   ├── auth/
 │   │   ├── index.php               # Guard d'authentification
 │   │   ├── login.php               # Traitement du formulaire de connexion
@@ -222,10 +221,6 @@ Le fichier `sql/database.sql` pré-remplit la base de données avec des comptes 
 |------|--------------------|--------------|------------------|
 | **Admin** | `admin@example.com` | `Admin123456!` | 500.00 € |
 | **User** | `jean@example.com` | `Admin123456!` | 250.00 € |
-
-> 💡 **Mode Rapide Admin (Développement)** :  
-> Vous pouvez forcer une session administrateur sans saisir d'identifiant en visitant l'URL :  
-> `http://localhost:8080/backend/init_admin.php`
 
 ---
 

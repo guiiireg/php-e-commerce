@@ -26,6 +26,7 @@
             <?php endif; ?>
 
             <form method="POST" action="/backend/auth/register.php" class="auth-form">
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label for="username">Nom d'utilisateur :</label>
                     <input 

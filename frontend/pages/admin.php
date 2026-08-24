@@ -64,11 +64,12 @@
                                 <td>
                                     <a href="/backend/edit_user.php?id=<?= $user['id'] ?>" class="btn btn-edit btn-sm">Modifier</a>
                                     <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                        <a href="/backend/admin_delete.php?type=user&id=<?= $user['id'] ?>" 
-                                           class="btn btn-delete btn-sm"
-                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
-                                            Supprimer
-                                        </a>
+                                        <form method="POST" action="/backend/admin_delete.php" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="type" value="user">
+                                            <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
+                                            <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
+                                        </form>
                                     <?php else: ?>
                                         <span class="text-muted-sm">(Compte actif)</span>
                                     <?php endif; ?>
@@ -124,11 +125,12 @@
                                 <td><?= htmlspecialchars($article['auteur_name'] ?? 'Inconnu') ?></td>
                                 <td>
                                     <a href="/backend/edit_article.php?id=<?= $article['id'] ?>" class="btn btn-edit btn-sm">Modifier</a>
-                                    <a href="/backend/admin_delete.php?type=article&id=<?= $article['id'] ?>" 
-                                       class="btn btn-delete btn-sm"
-                                       onclick="return confirm('Supprimer cet article définitivement ?');">
-                                        Supprimer
-                                    </a>
+                                    <form method="POST" action="/backend/admin_delete.php" style="display:inline-block;" onsubmit="return confirm('Supprimer cet article définitivement ?');">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="type" value="article">
+                                        <input type="hidden" name="id" value="<?= (int)$article['id'] ?>">
+                                        <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

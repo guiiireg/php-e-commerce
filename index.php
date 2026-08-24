@@ -1,7 +1,8 @@
 <?php
 /**
- * POINT D'ENTRÉE RACINE DU PROJET
- * Redirige automatiquement toutes les requêtes arrivant sur la racine vers le contrôleur backend principal.
+ * Root Entry Point
+ *
+ * Automatically forwards root web traffic to the primary catalog controller.
  */
 header("Location: /backend/home.php");
 exit;

@@ -65,6 +65,7 @@
                 <!-- Formulaire d'ajout au panier -->
                 <?php if ($article['stock_qty'] > 0): ?>
                     <form method="POST" action="/backend/detail.php?id=<?= (int)$article['id'] ?>" class="add-to-cart-form">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="add_to_cart">
                         
                         <div class="quantity-picker">

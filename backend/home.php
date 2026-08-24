@@ -1,19 +1,18 @@
 <?php
 /**
- * CONTRÔLEUR PAGE D'ACCUEIL / CATALOGUE PRODUITS
- * - Récupère la liste des articles en base de données.
- * - Permet le filtrage par mot-clé (recherche sur le nom ou la description).
- * - Gère le tri par prix croissant, décroissant ou date de publication.
- * - Joint la table `stock` pour afficher la quantité disponible de chaque article.
+ * Catalog & Home Page Controller
+ *
+ * Handles public product catalog discovery, multi-column search filtering,
+ * and user-controlled sorting.
  */
 
 require_once __DIR__ . '/config/config.php';
 
-// Récupération et nettoyage des paramètres de recherche et tri
 $search = trim($_GET['search'] ?? '');
 $sort = trim($_GET['sort'] ?? '');
 
-// Construction dynamique de la requête SQL avec jointure sur les stocks
+// Use LEFT JOINs to aggregate product details, author metadata, and stock levels in a single query
+// to eliminate N+1 query performance overhead. COALESCE ensures a predictable integer (0) if stock is uninitialized.
 $sql = "SELECT article.*, users.username AS auteur_name, COALESCE(stock.nombre, 0) AS stock_qty
         FROM article
         LEFT JOIN users ON article.auteur_id = users.id
@@ -21,13 +20,15 @@ $sql = "SELECT article.*, users.username AS auteur_name, COALESCE(stock.nombre, 
 
 $params = [];
 
-// Filtre de recherche par mot-clé
+// Apply wildcard search matching across both name and description to improve discovery
 if (!empty($search)) {
     $sql .= " WHERE article.nom LIKE :search OR article.description LIKE :search";
     $params[':search'] = '%' . $search . '%';
 }
 
-// Application du tri selon la sélection de l'utilisateur
+// Map user sort choices through a strict whitelist.
+// SQL identifiers and keywords (like ORDER BY directions) cannot be passed as PDO bound parameters,
+// so explicit whitelisting prevents SQL injection vulnerabilities here.
 switch ($sort) {
     case 'prix_asc':
         $orderBy = "article.prix ASC";
@@ -36,6 +37,7 @@ switch ($sort) {
         $orderBy = "article.prix DESC";
         break;
     default:
+        // Default to newest items first so returning customers always see recent products
         $orderBy = "article.date_publication DESC";
         break;
 }
@@ -47,8 +49,8 @@ try {
     $stmt->execute($params);
     $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Erreur lors de la récupération des articles : " . htmlspecialchars($e->getMessage()));
+    error_log("Failed to load catalog articles: " . $e->getMessage());
+    die("An error occurred while loading the product catalog. Please try again later.");
 }
 
-// Inclusions de la vue HTML d'accueil
 require_once __DIR__ . '/../frontend/pages/home.php';

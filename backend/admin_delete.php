@@ -1,53 +1,56 @@
 <?php
 /**
- * TRAITEMENT DE LA SUPPRESSION D'UTILISATEUR OU D'ARTICLE (ADMIN)
- * - Vérifie que l'utilisateur en session possède le rôle 'admin'.
- * - Reçoit l'identifiant (id) et le type de ressource à supprimer ('user' ou 'article').
- * - Supprime l'entrée en BDD via une requête préparée.
+ * Administrator Deletion Processing Endpoint
+ *
+ * Handles protected POST-based removal of user accounts and catalog articles.
  */
 
 require_once __DIR__ . "/config/config.php";
 
-// Contrôle d'accès strict
+// Strict Role Guard: Non-admins cannot invoke deletion operations
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    die("Accès refusé.");
+    die("Access denied.");
 }
 
-// Vérification de la présence des paramètres requis
-if (!isset($_GET['id']) || !isset($_GET['type'])) {
-    $_SESSION['error'] = "Paramètres de suppression manquants.";
+// Destructive state-changing operations require HTTP POST and a valid CSRF token.
+// GET requests are unsafe because browsers pre-fetch links and external sites can embed them in <img> tags.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verify_csrf_token()) {
+    $_SESSION['error'] = "Unauthorized request or expired CSRF security token.";
     header('Location: /backend/admin.php');
     exit();
 }
 
-$id = (int) $_GET['id'];
-$type = $_GET['type'];
+$id = (int)($_POST['id'] ?? 0);
+$type = $_POST['type'] ?? '';
 
 if ($id <= 0) {
-    $_SESSION['error'] = "Identifiant invalide.";
+    $_SESSION['error'] = "Invalid identifier.";
     header('Location: /backend/admin.php');
     exit();
 }
 
 try {
     if ($type === 'user') {
-        // Empêcher la suppression du compte admin actuellement connecté
-        if ($id === $_SESSION['user_id']) {
-            $_SESSION['error'] = "Vous ne pouvez pas supprimer votre propre compte connecté.";
+        // Self-lockout protection: Prevent the logged-in administrator from accidentally deleting their own active account
+        if ($id === (int)$_SESSION['user_id']) {
+            $_SESSION['error'] = "You cannot delete your own active administrator account.";
         } else {
+            // Foreign key CASCADE constraints in database.sql automatically purge associated carts and orders
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$id]);
-            $_SESSION['success'] = "L'utilisateur #$id a été supprimé avec succès.";
+            $_SESSION['success'] = "User #$id has been successfully deleted.";
         }
     } elseif ($type === 'article') {
+        // Foreign key CASCADE constraints clean up corresponding inventory stock rows
         $stmt = $pdo->prepare("DELETE FROM article WHERE id = ?");
         $stmt->execute([$id]);
-        $_SESSION['success'] = "L'article #$id a été supprimé avec succès.";
+        $_SESSION['success'] = "Article #$id has been successfully deleted.";
     } else {
-        $_SESSION['error'] = "Type d'élément invalide.";
+        $_SESSION['error'] = "Invalid entity type specified.";
     }
 } catch (PDOException $e) {
-    $_SESSION['error'] = "Erreur SQL lors de la suppression : " . htmlspecialchars($e->getMessage());
+    error_log("Admin deletion error: " . $e->getMessage());
+    $_SESSION['error'] = "An error occurred while deleting the requested record.";
 }
 
 header('Location: /backend/admin.php');

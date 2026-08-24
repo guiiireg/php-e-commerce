@@ -1,14 +1,15 @@
 <?php
 /**
- * Composant d'en-tête (Header) inclus sur l'ensemble des pages frontend.
- * Affiche la navigation principale, l'état de connexion de l'utilisateur,
- * son rôle (Admin) et son solde disponible.
+ * Global Navigation Header Component
+ *
+ * Renders the top navigation bar, active user authentication badge,
+ * live balance counter, and shopping cart item quantity.
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Calcul du nombre d'articles dans le panier si l'utilisateur est connecté
+// Compute aggregate cart quantity dynamically for the navigation badge
 $cartCount = 0;
 if (isset($_SESSION['user_id']) && isset($pdo)) {
     try {
@@ -16,10 +17,14 @@ if (isset($_SESSION['user_id']) && isset($pdo)) {
         $stmtCartCount->execute([$_SESSION['user_id']]);
         $cartCount = (int) ($stmtCartCount->fetchColumn() ?? 0);
     } catch (Exception $e) {
+        // Fallback to 0 badge count if database is temporarily unavailable during header rendering
         $cartCount = 0;
     }
 }
 ?>
+<div class="demo-notice-banner" style="background:#1e293b; color:#cbd5e1; text-align:center; padding:6px 12px; font-size:0.85rem; border-bottom:1px solid #334155;">
+    ℹ️ <strong>Projet étudiant / Démonstration</strong> — Aucun paiement réel ni livraison physique.
+</div>
 <header class="main-header">
     <div class="header-container">
         <a href="/backend/home.php" class="brand-logo">

@@ -82,8 +82,8 @@ CREATE TABLE invoice (
 -- Insertion d'un compte Administrateur (Mot de passe: Admin123456!)
 -- Hash généré via password_hash('Admin123456!', PASSWORD_DEFAULT)
 INSERT INTO users (username, email, password, solde, role) VALUES 
-('Administrator', 'admin@example.com', '$2y$10$wK1Gv/1J/uWk48u9p.J8s.1bVbH0fW19G.Yg6dG1vH1234567890', 500.00, 'admin'),
-('JeanDupont', 'jean@example.com', '$2y$10$wK1Gv/1J/uWk48u9p.J8s.1bVbH0fW19G.Yg6dG1vH1234567890', 250.00, 'user');
+('Administrator', 'admin@example.com', '$2y$12$uLcOklub2RNOuQaQptbtruqvmCgAcPYVilwTglzz.Wm.jsdeMCI5K', 500.00, 'admin'),
+('JeanDupont', 'jean@example.com', '$2y$12$uLcOklub2RNOuQaQptbtruqvmCgAcPYVilwTglzz.Wm.jsdeMCI5K', 250.00, 'user');
 
 -- Insertion d'articles de démonstration
 INSERT INTO article (nom, description, prix, auteur_id, image) VALUES 

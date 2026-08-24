@@ -70,6 +70,7 @@
                                     <td><?= number_format($item['prix'], 2, ',', ' ') ?> €</td>
                                     <td>
                                         <form method="POST" action="/backend/cart.php" class="inline-qty-form">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="update_qty">
                                             <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
                                             <input 
@@ -87,11 +88,12 @@
                                         <?= number_format($item['prix'] * $item['quantite'], 2, ',', ' ') ?> €
                                     </td>
                                     <td>
-                                        <a href="/backend/cart.php?action=delete&id=<?= $item['cart_id'] ?>" 
-                                           class="btn btn-delete btn-sm"
-                                           onclick="return confirm('Retirer cet article du panier ?');">
-                                           Supprimer
-                                        </a>
+                                        <form method="POST" action="/backend/cart.php" style="display:inline-block;" onsubmit="return confirm('Retirer cet article du panier ?');">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="cart_id" value="<?= (int)$item['cart_id'] ?>">
+                                            <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -122,6 +124,7 @@
 
                     <h4>Adresse de livraison / Facturation</h4>
                     <form method="POST" action="/backend/cart.php" class="checkout-form">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="checkout">
 
                         <div class="form-group">

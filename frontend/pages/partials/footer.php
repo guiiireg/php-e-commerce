@@ -1,6 +1,8 @@
 <?php
 /**
- * Composant de pied de page (Footer) inclus sur l'ensemble des vues de l'application.
+ * Global Page Footer Component
+ *
+ * Renders consistent copyright information and dynamic current year across all views.
  */
 ?>
 <footer class="main-footer">

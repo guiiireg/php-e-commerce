@@ -27,7 +27,7 @@
 
         <div class="admin-form-container">
             <form method="POST" action="/backend/edit_user.php?id=<?= $user['id'] ?>" class="admin-form">
-                
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label for="username">Nom d'utilisateur :</label>
                     <input type="text" id="username" name="username" required value="<?= htmlspecialchars($user['username']) ?>">
