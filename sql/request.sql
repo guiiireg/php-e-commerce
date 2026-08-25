@@ -1,17 +1,17 @@
 -- ==============================================================================
--- REQUÊTES SQL UTILES & EXEMPLES DE MANIPULATION
+-- USEFUL SQL QUERIES & DATA MANIPULATION EXAMPLES
 -- ==============================================================================
 
--- 1. Modification de la quantité d'un article dans le panier d'un utilisateur
+-- 1. Update quantity of an article inside a user's shopping cart
 UPDATE cart 
 SET quantite = 5 
 WHERE id = 1;
 
--- 2. Suppression d'une entrée spécifique du panier
+-- 2. Remove a specific cart entry
 DELETE FROM cart 
 WHERE id = 10;
 
--- 3. Jointure pour afficher les articles du panier avec leur prix unitaire et le sous-total par article
+-- 3. Join cart with article table to display unit prices and item subtotals
 SELECT 
     article.nom, 
     article.prix, 
@@ -21,14 +21,14 @@ FROM cart
 JOIN article ON cart.article_id = article.id
 WHERE cart.user_id = 1;
 
--- 4. Calcul du montant total global du panier pour un utilisateur donné
+-- 4. Calculate total cart order cost for a given user
 SELECT 
     SUM(article.prix * cart.quantite) AS total_global
 FROM cart
 JOIN article ON cart.article_id = article.id
 WHERE cart.user_id = 1;
 
--- 5. Requête de vérification du stock disponible avant validation de commande
+-- 5. Query to verify stock availability before checkout completion
 SELECT 
     article.id, 
     article.nom, 
@@ -38,3 +38,4 @@ FROM cart
 JOIN article ON cart.article_id = article.id
 LEFT JOIN stock ON stock.article_id = article.id
 WHERE cart.user_id = 1;
+

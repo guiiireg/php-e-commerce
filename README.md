@@ -1,189 +1,193 @@
-# 🛍️ PHP E-Commerce — Application E-Commerce Native PHP & MySQL
+# 🛍️ PHP E-Commerce — Native PHP & MySQL E-Commerce Web Application
 
-[![Demo Live](https://img.shields.io/badge/Demo%20Live-guireg.alwaysdata.net-2563eb?style=for-the-badge&logo=google-chrome&logoColor=white)](https://guireg.alwaysdata.net)
+> **Note pour les recruteurs / RH :** *PHP E-Commerce est une application complète de commerce électronique développée en PHP 8 natif (sans framework) et MySQL/PDO, implémentant une architecture modulaire MVC, la gestion des sessions/CSRF, des transactions bancaires ACID virtuelles et un espace d'administration sécurisé.*
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-guireg.alwaysdata.net-2563eb?style=for-the-badge&logo=google-chrome&logoColor=white)](https://guireg.alwaysdata.net)
 [![PHP](https://img.shields.io/badge/PHP-8.0+-777bb4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-MariaDB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
 
-> 🌐 **Démo en ligne disponible** : **[https://guireg.alwaysdata.net](https://guireg.alwaysdata.net)**
+> 🌐 **Live Demo Available:** **[https://guireg.alwaysdata.net](https://guireg.alwaysdata.net)**
 
-Bienvenue sur le projet **PHP E-Commerce**. Il s'agit d'une application e-commerce complète, développée en **PHP natif** (sans framework) et **MySQL/PDO**, respectant une architecture propre et modulable avec une séparation claire entre la logique métier (**backend**) et l'interface utilisateur (**frontend**).
-
----
-
-## 📋 Sommaire
-
-- [Présentation du projet](#-présentation-du-projet)
-- [Fonctionnalités principales](#-fonctionnalités-principales)
-- [Architecture & Structure du projet](#-architecture--structure-du-projet)
-- [Prérequis système](#-prérequis-système)
-- [Installation & Configuration](#-installation--configuration)
-  - [1. Obtenir les sources](#1-obtenir-les-sources)
-  - [2. Importer la base de données](#2-importer-la-base-de-données)
-  - [3. Configurer les identifiants PDO](#3-configurer-les-identifiants-pdo)
-  - [4. Lancer le serveur local](#4-lancer-le-serveur-local)
-- [Schéma de la base de données](#-schéma-de-la-base-de-données)
-- [Cartographie des Routes & Fichiers](#-cartographie-des-routes--fichiers)
-- [Comptes de test & Rôles](#-comptes-de-test--rôles)
-- [Documentation & Zones de Commentaires](#-documentation--zones-de-commentaires)
+Welcome to the **PHP E-Commerce** repository. This is a full-featured e-commerce web platform built with **native PHP** (no heavy third-party frameworks) and **MySQL/PDO**, adhering to clean code principles, modular architecture, and strict separation between server-side domain logic (**backend**) and template presentation (**frontend**).
 
 ---
 
-## 🌟 Présentation du projet
+## 📋 Table of Contents
 
-Ce projet constitue une plateforme e-commerce clé en main incluant :
-- Un catalogue de produits avec recherche dynamique par mot-clé et système de tri.
-- Un système complet d'authentification utilisateur avec chiffrement sécurisé des mots de passe.
-- Un panier d'achat persistant par utilisateur avec ajustement des quantités et calcul du sous-total/total.
-- Un mécanisme de commande gérant le solde bancaire virtuel de l'utilisateur, la décrémentation des stocks en temps réel et la génération de factures.
-- Un tableau de bord d'administration sécurisé permettant la modération des membres, la création et l'édition d'articles, la mise à jour des stocks et la consultation de l'historique des factures.
-
----
-
-## 🔥 Fonctionnalités principales
-
-### 🛒 Côté Client / Utilisateur
-1. **Navigation & Catalogue** :
-   - Affichage des articles sous forme de cartes modernes.
-   - Badge de disponibilité du stock en temps réel (*En stock* avec quantité restante / *Rupture de stock*).
-   - Barre de recherche par mot-clé (nom ou description).
-   - Tri dynamique : plus récents, prix croissant, prix décroissant.
-2. **Page Fiche Produit (`detail.php`)** :
-   - Vue détaillée avec auteur du produit, date de mise en ligne, description complète et tarif.
-   - Sélecteur de quantité borné par la limite du stock disponible.
-   - Bouton d'ajout immédiat au panier.
-3. **Panier & Prise de Commande (`cart.php`)** :
-   - Affichage sous forme de tableau récapitulatif.
-   - Modification en direct des quantités et suppression d'articles.
-   - Vérification automatique de la solvabilité du client (solde utilisateur vs total de la commande).
-   - Saisie de l'adresse de facturation/livraison.
-   - Validation de la commande via transaction SQL sécurisée (`beginTransaction` / `commit` / `rollBack`) qui :
-     - Déduit le montant total du solde utilisateur.
-     - Décrémente le stock de chaque article.
-     - Génère une entrée de facture (`invoice`).
-     - Vide le panier de l'utilisateur.
-4. **Authentification (`auth/`)** :
-   - Inscription avec validation du format de l'email, mot de passe fort (12+ caractères) et solde de bienvenue initial crédité (100 €).
-   - Connexion via hash de mot de passe BCrypt (`password_verify`).
-   - Déconnexion sécurisée réinitialisant la session PHP et les cookies associés.
-
-### ⚙️ Côté Administrateur (`admin.php`)
-1. **Gestion des Utilisateurs** :
-   - Liste de tous les comptes enregistrés.
-   - Édition des informations membres : nom d'utilisateur, email, attribution du rôle (`user` ou `admin`), rechargement du solde du compte (`edit_user.php`).
-   - Suppression sécurisée de comptes (avec protection contre l'auto-suppression de l'admin connecté).
-2. **Gestion des Articles & Stocks** :
-   - Création de nouveaux produits avec attribution du stock initial (`add_article.php`).
-   - Édition complète des fiches produits : nom, description, prix, image et niveau du stock (`edit_article.php`).
-   - Suppression définitive d'articles (`admin_delete.php`).
-3. **Historique des Ventes** :
-   - Tableau de bord des factures enregistrées avec nom du client, date de la transaction, montant et adresse de facturation.
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture & Directory Structure](#-architecture--directory-structure)
+- [System Requirements](#-system-requirements)
+- [Installation & Setup](#-installation--setup)
+  - [1. Clone the Repository](#1-clone-the-repository)
+  - [2. Import the Database](#2-import-the-database)
+  - [3. Configure PDO Credentials](#3-configure-pdo-credentials)
+  - [4. Start the Local Server](#4-start-the-local-server)
+- [Database Schema](#-database-schema)
+- [Route & File Mapping](#-route--file-mapping)
+- [Demo Test Accounts & Roles](#-demo-test-accounts--roles)
+- [Security & Engineering Standards](#-security--engineering-standards)
 
 ---
 
-## 📐 Architecture & Structure du projet
+## 🌟 Overview
 
-```
+This project delivers a complete turnkey e-commerce solution including:
+- Dynamic product catalog with keyword search and price/date sorting.
+- Robust user authentication and session management with BCrypt password hashing.
+- Persistent user shopping carts with live quantity adjustment and automatic subtotal calculation.
+- Transactional checkout engine managing virtual customer bank balances, atomic inventory deduction, and invoice generation.
+- Role-Based Access Control (RBAC) administrative dashboard for member moderation, product publishing, inventory stock updates, and sales reporting.
+
+---
+
+## 🔥 Key Features
+
+### 🛒 Customer & Storefront
+1. **Catalog & Discovery** :
+   - Modern grid layout with responsive product cards.
+   - Real-time stock status badge (*In Stock* with available units / *Out of Stock*).
+   - Multi-column keyword search (filtering across product title and description).
+   - Dynamic sorting: newest first, price ascending, price descending.
+2. **Product Details Page (`detail.php`)** :
+   - Dedicated specification view with publisher info, release timestamp, full description, and unit price.
+   - Dynamic quantity selector bounded by real-time inventory limits.
+   - One-click cart addition with automatic quantity merging.
+3. **Cart & Checkout Engine (`cart.php`)** :
+   - Interactive tabular cart overview with live subtotals and global order sum.
+   - Real-time item deletion and quantity modification.
+   - Automated client solvency check (user balance vs total checkout sum).
+   - Billing and shipping address collection.
+   - Secure atomic SQL transaction (`beginTransaction` / `commit` / `rollBack`) executing:
+     - Order total deduction from user virtual funds.
+     - Decrementing stock for each purchased item.
+     - Recording immutable sales invoice (`invoice`).
+     - Clearing active shopping cart rows.
+4. **Authentication & Security (`auth/`)** :
+   - Member registration with email format validation, strong password enforcement (12+ characters), and a credited starting balance (€100.00).
+   - Secure login using constant-time BCrypt verification (`password_verify`).
+   - Session fixation countermeasure with `session_regenerate_id(true)` upon successful authentication.
+   - Comprehensive CSRF token validation on all state-mutating POST forms.
+
+### ⚙️ Administrator Dashboard (`admin.php`)
+1. **User Account Moderation** :
+   - Complete list of registered users.
+   - Member profile editor: update username, email, role assignment (`user` vs `admin`), and virtual balance top-up (`edit_user.php`).
+   - Secure deletion of user accounts with self-deletion protection for the active administrator.
+2. **Catalog & Inventory Management** :
+   - Create new products with initial stock allocations (`add_article.php`).
+   - Complete article editor: title, description, price, thumbnail image, and inventory quantities (`edit_article.php`).
+   - Permanent removal of products with cascading foreign key cleanup (`admin_delete.php`).
+3. **Sales & Invoice Bookkeeping** :
+   - Historical invoices ledger displaying customer name, order timestamp, amount, and billing address.
+
+---
+
+## 📐 Architecture & Directory Structure
+
+```text
 php-e-commerce/
-├── index.php                       # Point d'entrée racine (redirection vers backend/home.php)
-├── CODEOWNERS                      # Fichier de propriétaires de code
-├── README.md                       # Documentation principale du projet
-├── backend/                        # LOGIQUE SVEUR & CONTRÔLEURS
-│   ├── home.php                    # Contrôleur d'accueil (catalogue, recherche & tri)
-│   ├── detail.php                  # Contrôleur de fiche produit & ajout panier
-│   ├── cart.php                    # Contrôleur du panier et paiement de commande
-│   ├── admin.php                   # Contrôleur du tableau de bord administrateur
-│   ├── admin_delete.php            # Traitement de suppression (membres / articles)
-│   ├── add_article.php             # Contrôleur de création d'article
-│   ├── edit_article.php            # Contrôleur d'édition d'article & stock
-│   ├── edit_user.php               # Contrôleur d'édition d'utilisateur & solde
+├── index.php                       # Root entry point (forwards to backend/home.php)
+├── CODEOWNERS                      # Repository code ownership file
+├── README.md                       # Main project documentation
+├── backend/                        # SERVER LOGIC & CONTROLLERS
+│   ├── home.php                    # Catalog discovery, search & sorting controller
+│   ├── detail.php                  # Product detail & add-to-cart controller
+│   ├── cart.php                    # Shopping cart & checkout transaction controller
+│   ├── admin.php                   # Administrative dashboard overview controller
+│   ├── admin_delete.php            # Administrative deletion endpoint (users & articles)
+│   ├── add_article.php             # Product creation controller
+│   ├── edit_article.php            # Product & inventory update controller
+│   ├── edit_user.php               # User account & balance update controller
 │   ├── auth/
-│   │   ├── index.php               # Guard d'authentification
-│   │   ├── login.php               # Traitement du formulaire de connexion
-│   │   ├── register.php            # Traitement du formulaire d'inscription
-│   │   ├── logout.php              # Traitement de la déconnexion
-│   │   └── pages/                  # Templates HTML de secours (login / register)
+│   │   ├── index.php               # Auth directory guard
+│   │   ├── login.php               # Login credential processor
+│   │   ├── register.php            # Member registration processor
+│   │   ├── logout.php              # Session teardown & cookie invalidation
+│   │   └── pages/                  # Static fallback HTML templates
 │   └── config/
-│       └── config.php              # Connexion PDO MySQL & initialisation des sessions
-├── frontend/                       # VUES & INTERFACE UTILISATEUR
-│   ├── index.php                   # Redirection frontend vers backend/home.php
+│       └── config.php              # PDO MySQL connection, session hardening & CSRF helpers
+├── frontend/                       # VIEW LAYER & USER INTERFACE
+│   ├── index.php                   # Frontend directory fallback
 │   ├── assets/
 │   │   ├── css/
-│   │   │   ├── style.css           # Feuille de style globale (thème, boutons, tables)
-│   │   │   └── home.css            # Feuille de style spécifique (grilles, cartes, panier)
+│   │   │   ├── style.css           # Global typography, layout, buttons & tables
+│   │   │   └── home.css            # Storefront grid, cards, and cart styling
 │   │   └── img/
-│   │       └── default.jpg         # Image par défaut des articles
+│   │       └── default.jpg         # Default product placeholder asset
 │   └── pages/
-│       ├── home.php                # Vue de la page d'accueil
-│       ├── detail.php              # Vue de la fiche produit
-│       ├── cart.php                # Vue du panier d'achat
-│       ├── admin.php               # Vue du tableau de bord administrateur
-│       ├── add_article.php         # Vue de création d'un article
-│       ├── edit_article.php        # Vue d'édition d'un article
-│       ├── edit_user.php           # Vue d'édition d'un utilisateur
+│       ├── home.php                # Storefront catalog view template
+│       ├── detail.php              # Product detail view template
+│       ├── cart.php                # Shopping cart & checkout view template
+│       ├── admin.php               # Administrative dashboard view template
+│       ├── add_article.php         # Product creation view template
+│       ├── edit_article.php        # Product edit view template
+│       ├── edit_user.php           # User edit view template
 │       ├── partials/
-│       │   ├── header.php          # Barre de navigation partagée avec solde & panier
-│       │   └── footer.php          # Pied de page partagé
+│       │   ├── header.php          # Shared navigation bar with live balance & cart badge
+│       │   └── footer.php          # Shared global footer
 │       └── auth/
-│           ├── login.php           # Vue du formulaire de connexion
-│           └── register.php        # Vue du formulaire d'inscription
+│           ├── login.php           # Login form view template
+│           └── register.php        # Registration form view template
 └── sql/
-    ├── database.sql                # Script d'initialisation de la BDD et tables
-    └── request.sql                 # Requêtes SQL de démonstration et utilitaires
+    ├── database.sql                # Complete database schema and seed data
+    └── request.sql                 # Reference SQL queries and data manipulation examples
 ```
 
 ---
 
-## 🛠️ Prérequis système
+## 🛠️ System Requirements
 
-- **PHP** : version 8.0 ou supérieure (avec extensions `pdo_mysql` et `mbstring`).
-- **MySQL / MariaDB** : version 5.7+ ou MariaDB 10.3+.
-- **Navigateur Web** : n'importe quel navigateur moderne (Chrome, Firefox, Edge, Safari).
+- **PHP** : `8.0` or higher (with `pdo_mysql` and `mbstring` extensions enabled).
+- **MySQL / MariaDB** : `5.7+` or MariaDB `10.3+`.
+- **Web Browser** : Any modern standards-compliant browser (Chrome, Firefox, Edge, Safari).
 
 ---
 
-## 🚀 Installation & Configuration
+## 🚀 Installation & Setup
 
-### 1. Obtenir les sources
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/guiiireg/php-e-commerce.git
 cd php-e-commerce
 ```
 
-### 2. Importer la base de données
-Exécutez le script SQL pour créer la base `php_exam`, la structure des tables et charger les données de démonstration :
+### 2. Import the Database
+Execute the SQL script to create the `php_exam` database, initialize table structures, and seed initial test data:
 
 ```bash
 mysql -u root -p < sql/database.sql
 ```
 
-Si vous préférez créer l'utilisateur MySQL dédié avec les droits appropriés :
+Alternatively, create a dedicated MySQL user:
 ```sql
 CREATE USER IF NOT EXISTS 'php_user'@'localhost' IDENTIFIED BY 'root123';
 GRANT ALL PRIVILEGES ON php_exam.* TO 'php_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 3. Configurer les identifiants PDO
-Le fichier `backend/config/config.php` contient les identifiants de connexion. Modifiez-les si nécessaire :
+### 3. Configure PDO Credentials
+Adjust connection parameters in `backend/config/config.php` (or provide environment variables):
 ```php
-$host = 'localhost';
-$dbname = 'php_exam';
-$username = 'php_user'; // Votre identifiant MySQL
-$password = 'root123';  // Votre mot de passe MySQL
+$host = env('DB_HOST', 'localhost');
+$port = env('DB_PORT', '3306');
+$dbname = env('DB_NAME', 'php_exam');
+$username = env('DB_USER', 'php_user');
+$password = env('DB_PASS', 'root123');
 ```
 
-### 4. Lancer le serveur local
-Exécutez la commande suivante depuis la racine du projet :
+### 4. Start the Local Server
+Launch PHP's built-in development server from the repository root:
 ```bash
 php -S localhost:8080
 ```
-Accédez ensuite à l'application dans votre navigateur : **[http://localhost:8080](http://localhost:8080)**.
+Open your browser at **[http://localhost:8080](http://localhost:8080)**.
 
 ---
 
-## 🗄️ Schéma de la base de données
+## 🗄️ Database Schema
 
-```
+```text
   +-------------------------------------------------------------+
   |                            users                            |
   +-------------------------------------------------------------+
@@ -211,28 +215,29 @@ Accédez ensuite à l'application dans votre navigateur : **[http://localhost:80
   +-----------+     +-------------------+
 ```
 
-- **`users`** : Comptes utilisateurs, hash de mot de passe, rôle (`user`/`admin`) et solde bancaire virtuel (`solde`).
-- **`article`** : Produits mis en vente (nom, description, prix, auteur, image).
-- **`stock`** : Quantité disponible en stock associée à chaque article.
-- **`cart`** : Articles et quantités enregistrés dans le panier d'un utilisateur.
-- **`invoice`** : Factures émises lors de la validation d'une commande.
+- **`users`** : User accounts, BCrypt password hashes, role assignments (`user`/`admin`), and virtual bank balances (`solde`).
+- **`article`** : Product catalog listings (name, description, price, author reference, image asset).
+- **`stock`** : Real-time available inventory quantity linked 1:1 with each article.
+- **`cart`** : User active shopping cart items and quantities.
+- **`invoice`** : Immutable customer invoices generated upon checkout completion.
 
 ---
 
-## 🔑 Comptes de test & Rôles
+## 🔑 Demo Test Accounts & Roles
 
-Le fichier `sql/database.sql` pré-remplit la base de données avec des comptes de test :
+Pre-configured demo credentials from `sql/database.sql`:
 
-| Role | Identifiant / Email | Mot de passe | Solde par défaut |
-|------|--------------------|--------------|------------------|
+| Role | Username / Email | Password | Default Balance |
+|------|------------------|----------|-----------------|
 | **Admin** | `admin@example.com` | `Admin123456!` | 500.00 € |
 | **User** | `jean@example.com` | `Admin123456!` | 250.00 € |
 
 ---
 
-## 📚 Documentation & Zones de Commentaires
+## 🛡️ Security & Engineering Standards
 
-L'ensemble du code a été documenté avec des zones de commentaires claires et didactiques en français afin d'en faciliter la lecture et la compréhension par tout développeur :
-- **En-têtes de fichiers (Docblocks)** : Présentation du rôle du fichier et de son contexte d'exécution.
-- **Gestion des transactions SQL** : Explication du fonctionnement des requêtes préparées PDO, des jointures (`LEFT JOIN`) et du contrôle des transactions (`beginTransaction` / `commit` / `rollBack`).
-- **Sécurité** : Explications détaillées du chiffrement des mots de passe (`password_hash`, `password_verify`), de la prévention contre les failles XSS (`htmlspecialchars`) et des injections SQL.
+- **SQL Injection Prevention:** 100% prepared statements with native parameters (`PDO::ATTR_EMULATE_PREPARES => false`).
+- **XSS Mitigation:** Universal output encoding using `htmlspecialchars()` across all presentation templates.
+- **CSRF Protection:** Cryptographically secure per-session tokens (`random_bytes(32)`) validated with constant-time `hash_equals()`.
+- **Session Hardening:** `HttpOnly`, `SameSite=Lax`, and HTTPS-aware `Secure` flags configured on session cookies.
+- **Path Traversal Protection:** Image file references are sanitized using `basename()` to prevent directory traversal.
