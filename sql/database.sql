@@ -1,9 +1,9 @@
 -- ==============================================================================
--- BASE DE DONNÉES : Schéma et données d'exemple
+-- DATABASE: Schema and Seed Data
 -- ==============================================================================
 
 -- ------------------------------------------------------------------------------
--- 1. Table `users` (Gestion des comptes utilisateurs et rôles)
+-- 1. Table `users` (User Accounts and Roles)
 -- ------------------------------------------------------------------------------
 DROP TABLE IF EXISTS invoice;
 DROP TABLE IF EXISTS cart;
@@ -22,7 +22,7 @@ CREATE TABLE users (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------------------------
--- 2. Table `article` (Catalogue des produits en vente)
+-- 2. Table `article` (Product Catalog)
 -- ------------------------------------------------------------------------------
 CREATE TABLE article (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,7 +36,7 @@ CREATE TABLE article (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------------------------
--- 3. Table `stock` (Gestion de la quantité disponible par article)
+-- 3. Table `stock` (Inventory and Available Quantity per Article)
 -- ------------------------------------------------------------------------------
 CREATE TABLE stock (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,7 +46,7 @@ CREATE TABLE stock (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------------------------
--- 4. Table `cart` (Panier d'achat pour chaque utilisateur)
+-- 4. Table `cart` (Shopping Cart per User)
 -- ------------------------------------------------------------------------------
 CREATE TABLE cart (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,7 +58,7 @@ CREATE TABLE cart (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------------------------
--- 5. Table `invoice` (Historique des commandes et factures générées)
+-- 5. Table `invoice` (Order History and Generated Customer Invoices)
 -- ------------------------------------------------------------------------------
 CREATE TABLE invoice (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,25 +72,26 @@ CREATE TABLE invoice (
 ) ENGINE=InnoDB;
 
 -- ==============================================================================
--- DONNÉES D'EXEMPLE (Seeding initial pour les tests)
+-- DEMO SEED DATA
 -- ==============================================================================
 
--- Insertion d'un compte Administrateur (Mot de passe: Admin123456!)
--- Hash généré via password_hash('Admin123456!', PASSWORD_DEFAULT)
+-- Seed Administrator Account (Password: Admin123456!)
+-- Hash generated using password_hash('Admin123456!', PASSWORD_DEFAULT)
 INSERT INTO users (username, email, password, solde, role) VALUES 
 ('Administrator', 'admin@example.com', '$2y$12$uLcOklub2RNOuQaQptbtruqvmCgAcPYVilwTglzz.Wm.jsdeMCI5K', 500.00, 'admin'),
 ('JeanDupont', 'jean@example.com', '$2y$12$uLcOklub2RNOuQaQptbtruqvmCgAcPYVilwTglzz.Wm.jsdeMCI5K', 250.00, 'user');
 
--- Insertion d'articles de démonstration
+-- Seed Catalog Products
 INSERT INTO article (nom, description, prix, auteur_id, image) VALUES 
 ('Ordinateur Portable Pro', 'Un PC performant pour le développement et la création graphique.', 899.99, 1, 'default.jpg'),
 ('Casque Audio Sans Fil', 'Casque à réduction de bruit active avec autonomie de 30 heures.', 149.50, 1, 'default.jpg'),
 ('Clavier Mécanique RGB', 'Switchs silencieux et rétroéclairage personnalisable.', 79.90, 1, 'default.jpg'),
 ('Souris Ergonomique', 'Précision optimale et confort prolongé pour les longues sessions.', 45.00, 1, 'default.jpg');
 
--- Initialisation des stocks pour les articles créés
+-- Seed Initial Inventory Stock Levels
 INSERT INTO stock (article_id, nombre) VALUES 
 (1, 10),
 (2, 25),
 (3, 15),
 (4, 30);
+
